@@ -7,10 +7,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import joblib
 
-# Cargar datos
-def load_data():
-    df_players = pd.read_csv("/content/Big5Leagues_Jugadores.csv")
-    df_teams = pd.read_csv("/content/Big5Leagues_Equipos.csv")
+import os
+
+# Verificar si los archivos existen antes de cargarlos
+if not os.path.exists("Big5Leagues_Jugadores.csv") or not os.path.exists("Big5Leagues_Equipos.csv"):
+    raise FileNotFoundError("❌ No se encontraron los archivos CSV en el directorio del repositorio. Asegúrate de que están en la misma carpeta que 'app.py'.")
+
+df_players = pd.read_csv("Big5Leagues_Jugadores.csv")
+df_teams = pd.read_csv("Big5Leagues_Equipos.csv")
 
     # Convertir columnas a numérico
     numeric_columns = ['Gls', 'xG', 'xAG', 'PrgP']
