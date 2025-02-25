@@ -105,3 +105,47 @@ if st.button("Generar PDF"):
     pdf.output("Reporte_ABP.pdf")
     st.success("📄 Reporte generado correctamente.")
 
+
+import plotly.graph_objects as go
+
+# 📌 Selección del jugador para el radar
+st.write("### 🛡️ Análisis de Desempeño del Jugador")
+player_radar = st.selectbox("Selecciona un jugador para el radar", df_players["Player"].unique())
+
+# 📌 Filtrar los datos del jugador seleccionado
+df_player_radar = df_players[df_players["Player"] == player_radar]
+
+if df_player_radar.empty:
+    st.warning("No se encontraron datos para el jugador seleccionado.")
+else:
+    # 📌 Seleccionar métricas para el radar
+    radar_metrics = ["Gls", "xG", "xAG", "PrgP", "PrgC", "PrgR"]
+    
+    # 📌 Extraer valores
+    values = df_player_radar[radar_metrics].values.flatten().tolist()
+    
+    # 📌 Agregar el primer valor al final para cerrar el gráfico
+    values.append(values[0])
+
+    # 📌 Crear gráfico de radar con Plotly
+    fig_radar = go.Figure()
+
+    fig_radar.add_trace(go.Scatterpolar(
+        r=values,
+        theta=radar_metrics + [radar_metrics[0]],
+        fill='toself',
+        name=player_radar
+    ))
+
+    # 📌 Configurar diseño del gráfico
+    fig_radar.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, max(values) * 1.2])
+        ),
+        showlegend=True,
+        title=f"📊 Radar de Desempeño - {player_radar}"
+    )
+
+    # 📌 Mostrar gráfico en Streamlit
+    st.plotly_chart(fig_radar)
+
