@@ -105,7 +105,7 @@ elif menu == "📊 Estadísticas":
         pdf.set_font("Arial", size=14)
         pdf.cell(200, 10, txt=f"Reporte ABP - {jugador}", ln=True, align='C')
         pdf.set_font("Arial", size=12)
-        for metrica, valor in zip(radar_metrics, valores_radar):
-            pdf.cell(200, 10, txt=f"{metrica}: {valor}", ln=True)
+        
+        
         pdf.output(f"Reporte_{jugador}.pdf")
         st.success("✅ Reporte PDF generado con éxito.")
