@@ -14,10 +14,15 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import confusion_matrix
 import joblib
 
-def cargar_datos(path_jugadores):
-    df = pd.read_csv(path_jugadores)
-    df.fillna(0, inplace=True)
-    return df
+def cargar_datos(path_jugadores, path_equipos):
+    df_players = pd.read_csv(path_jugadores)
+    df_teams = pd.read_csv(path_equipos)
+
+    # Limpieza básica
+    df_players.fillna(0, inplace=True)
+    df_teams.fillna(0, inplace=True)
+
+    return df_players, df_teams
 
 def entrenar_modelo(df):
     X = df[['xG', 'xAG', 'PrgP']]
