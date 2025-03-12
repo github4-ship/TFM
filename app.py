@@ -75,7 +75,7 @@ elif menu == "📊 Estadísticas":
     # -------- ENTRENAMIENTO MODELO --------
     try:
         modelo, matriz_confusion, accuracy = entrenar_modelo(df_filtrado)
-        st.success(f'🎯 Precisión del modelo: {accuracy_score:.2f}')
+        st.success(f'🎯 Precisión del modelo: {accuracy:.2f}')
     except ValueError as e:
         st.error(f"❌ {e}")
         st.stop()
