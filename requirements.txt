@@ -4,4 +4,6 @@ plotly
 scikit-learn
 joblib
 fpdf
+streamlit_authenticator
+
 
