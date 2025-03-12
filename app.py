@@ -98,14 +98,19 @@ elif menu == "📊 Estadísticas":
     fig_heatmap.update_layout(title="📌 Matriz de Confusión")
     st.plotly_chart(fig_heatmap)
 
-    # -------- Exportación PDF --------
-    if st.button("📄 Exportar Informe en PDF"):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=14)
-        pdf.cell(200, 10, txt=f"Reporte ABP - {jugador}", ln=True, align='C')
-        pdf.set_font("Arial", size=12)
-        
-        
-        pdf.output(f"Reporte_{jugador}.pdf")
-        st.success("✅ Reporte PDF generado con éxito.")
+
+# -------- EXPORTACIÓN PDF --------
+if st.button("📄 Exportar Informe en PDF"):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=14)
+    pdf.cell(200, 10, txt=f"Reporte ABP - {jugador}", ln=True, align='C')
+
+    pdf.set_font("Arial", size=12)
+
+    # Guardar el archivo correctamente
+    pdf.output(f"Reporte_{jugador}.pdf")
+
+    # ✅ Mensaje de confirmación (bien indentado)
+    st.success("✅ Reporte PDF generado con éxito.")
+
