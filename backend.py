@@ -17,6 +17,9 @@ import joblib
 def cargar_datos(path_jugadores, path_equipos):
     df_players = pd.read_csv(path_jugadores)
     df_teams = pd.read_csv(path_equipos)
+    
+    # Conversión explícita a formato numérico (clave para solucionar error)
+    df_players['Min'] = pd.to_numeric(df_players['Min'], errors='coerce').fillna(0)
 
     # Limpieza básica
     df_players.fillna(0, inplace=True)
