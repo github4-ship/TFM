@@ -8,20 +8,33 @@ from fpdf import FPDF
 import streamlit_authenticator as stauth
 from backend import cargar_datos
 
-# Autenticación
+# --------- AUTENTICACIÓN SEGURA ----------
+import streamlit as st
+import streamlit_authenticator as stauth
+
+# Credenciales (modifica estos valores según tu preferencia)
 names = ['Usuario Demo']
 usernames = ['usuario']
-passwords = ['password123']
-hashed_passwords = stauth.Hasher(passwords).generate()
-authenticator = stauth.Authenticate(names,usernames,hashed_passwords,"cookie_abp", "randomkey")
-name, auth_status, username = authenticator.login('Login', 'main')
+passwords = ['password123']  # Cámbialo por tu contraseña real
 
-if auth_status:
-    authenticator.logout('Cerrar sesión', 'sidebar')
-    st.sidebar.write(f'👋 Bienvenido/a {name}')
-else:
-    st.warning('Introduce credenciales válidas')
+# Genera contraseñas cifradas (hazlo previamente y pega el resultado aquí directamente)
+hashed_passwords = stauth.Hasher(passwords).generate()
+
+authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
+                                    'cookie_abp', 'signature_key_abp', cookie_expiry_days=30)
+
+name, authentication_status, username = authenticator.login('🔒 Login', 'main')
+
+if authentication_status == False:
+    st.error('❌ Usuario o contraseña incorrectos.')
     st.stop()
+elif authentication_status == None:
+    st.warning('⚠️ Por favor, introduce usuario y contraseña.')
+    st.stop()
+else:
+    authenticator.logout('Cerrar sesión', 'sidebar')
+    st.sidebar.write(f'👋 Bienvenido/a, {name}')
+
 
 # Menú principal
 menu = st.sidebar.radio("Menú", ["🏠 Home", "📊 Estadísticas"])
