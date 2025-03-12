@@ -12,7 +12,7 @@ credentials = {
     "usernames": {
         "Aithor": {
             "name": "Aithor",
-            "password": "$2b$12$hash_generado_con_bcrypt"
+            "password": "$2b$12$j/.wfm4K8jXKVD0URWruZO63P3MZMfGxMibgsW3hLLsC1z3C99Hpe"
         }
     }
 }
