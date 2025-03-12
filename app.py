@@ -28,7 +28,7 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=30
 )
 
-name, authentication_status, username = authenticator.login('Login', 'sidebar')
+name, authentication_status, username = authenticator.login('Login', location='sidebar')
 
 if authentication_status == False:
     st.error('❌ Usuario o contraseña incorrectos.')
