@@ -20,7 +20,7 @@ credentials = {
             "password": "$2b$12$AquiPonTuHashGeneradoCorrectamente"
         }
     }
-    
+}    
 authenticator = stauth.Authenticate(
     credentials=credentials,
     cookie_name="cookie_abp",
