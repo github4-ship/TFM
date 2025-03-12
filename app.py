@@ -1,4 +1,3 @@
-# ------------------ Librerías ------------------
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -8,19 +7,16 @@ from fpdf import FPDF
 import streamlit_authenticator as stauth
 from backend import cargar_datos, entrenar_modelo
 
-# --------- AUTENTICACIÓN SEGURA (Corregido definitivamente) ----------
-import streamlit as st
-import streamlit_authenticator as stauth
-
-# Credenciales con hash generado previamente (debes haberlo generado antes con stauth_hasher().py)
+# --------- AUTENTICACIÓN SEGURA (Corregido definitivo) ----------
 credentials = {
     "usernames": {
         "usuario": {
             "name": "Usuario Demo",
-            "password": "$2b$12$AquiPonTuHashGeneradoCorrectamente"
+            "password": "$2b$12$TU_HASH_GENERADO_PREVIAMENTE"
         }
     }
-}    
+}
+
 authenticator = stauth.Authenticate(
     credentials=credentials,
     cookie_name="cookie_abp",
@@ -28,19 +24,17 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=30
 )
 
-name, authentication_status, username = authenticator.login('Login', location='sidebar')
+authenticator.login('Login', location='sidebar')
 
-if authentication_status == False:
+if st.session_state["authentication_status"] is False:
     st.error('❌ Usuario o contraseña incorrectos.')
     st.stop()
-elif authentication_status == None:
-    st.warning('⚠️ Por favor introduce tu usuario y contraseña.')
+elif st.session_state["authentication_status"] is None:
+    st.warning('⚠️ Por favor introduce usuario y contraseña.')
     st.stop()
 else:
     authenticator.logout('Cerrar sesión', 'sidebar')
-    st.sidebar.write(f'👋 Bienvenido/a *{name}*')
-
-
+    st.sidebar.write(f'👋 Bienvenido/a, {st.session_state["name"]}')
 
 # ----------------- Menú Navegación ------------------------
 menu = st.sidebar.radio("Menú", ["🏠 Home", "📊 Estadísticas"])
@@ -50,17 +44,15 @@ df_players, df_teams = cargar_datos("Big5Leagues_Jugadores.csv")
 
 if menu == "🏠 Home":
     st.title("🏠 Home")
-    st.write("Bienvenido/a al análisis interactivo de balón parado usando Machine Learning.")
+    st.write("Bienvenido al Análisis ABP con Machine Learning.")
     
 elif menu == "📊 Estadísticas":
-    st.title("📊 Estadísticas avanzadas")
+    st.title("📊 Estadísticas Avanzadas ABP")
 
-    # Filtros interactivos obligatorios
     posiciones = st.sidebar.multiselect("⚽ Posiciones", df_players["Pos"].unique(), default=df_players["Pos"].unique())
     minutos = st.sidebar.slider("⏱️ Minutos jugados (mínimos)", 0, 4000, 500)
-    jugador_busqueda = st.sidebar.text_input("🔍 Buscar jugador")
+    jugador_busqueda = st.sidebar.text_input('🔍 Buscar jugador')
 
-    # Aplicación de filtros
     df_filtrado = df_players[(df_players["Min"] >= minutos) & (df_players["Pos"].isin(posiciones))]
     if jugador_busqueda:
         df_filtrado = df_filtrado[df_filtrado["Player"].str.contains(jugador_busqueda, case=False)]
@@ -68,22 +60,17 @@ elif menu == "📊 Estadísticas":
     jugador = st.selectbox("Selecciona jugador", df_filtrado["Player"].unique())
     datos_jugador = df_filtrado[df_filtrado["Player"] == jugador]
 
-    st.write("📈 **Estadísticas del jugador:**", datos_jugador)
+    st.write("📈 **Estadísticas del jugador seleccionado:**", datos_jugador)
 
-    # ----------------- Modelo Machine Learning ----------------------
     modelo, matriz_confusion = entrenar_modelo(df_filtrado)
 
     st.write(f'🎯 Precisión del modelo: {modelo.best_score_:.2f}')
 
-    # ----------------- Visualizaciones específicas ----------------------
-    # Scatterplot interactivo
     fig_scatter = px.scatter(df_filtrado, x="xG", y="Gls", color="Player", title="Relación xG vs Goles")
     st.plotly_chart(fig_scatter)
 
-    # Gráfico Radar
-    jugador_seleccionado = df_filtrado[df_filtrado["Player"] == jugador].iloc[0]
     radar_metrics = ['xG', 'xAG', 'PrgP']
-    valores_radar = jugador_seleccionado[radar_metrics].tolist()
+    valores_radar = datos_jugador[radar_metrics].iloc[0].tolist()
 
     fig_radar = go.Figure(go.Scatterpolar(
         r=valores_radar,
@@ -93,11 +80,10 @@ elif menu == "📊 Estadísticas":
     ))
     st.plotly_chart(fig_radar)
 
-    # ----------------- Matriz de confusión (Heatmap) ----------------------
     fig_heatmap = go.Figure(go.Heatmap(
         z=matriz_confusion,
         x=['No Éxito ABP', 'Éxito ABP'],
-        y=['Real No Éxito ABP', 'Real Éxito ABP'],
+        y=['Real No éxito ABP', 'Real Éxito ABP'],
         colorscale='Blues',
         text=matriz_confusion,
         texttemplate="%{text}"
@@ -109,10 +95,9 @@ elif menu == "📊 Estadísticas":
     if st.button("📄 Exportar Informe en PDF"):
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=14)
+        pdf.set_font("Arial", size=12)
         pdf.cell(200, 10, txt=f"Reporte ABP - {jugador}", ln=True, align='C')
 
-        pdf.set_font("Arial", size=12)
         for metrica, valor in zip(radar_metrics, valores_radar):
             pdf.cell(200, 10, txt=f"{metrica}: {valor}", ln=True)
 
