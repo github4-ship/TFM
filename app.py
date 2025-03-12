@@ -8,27 +8,43 @@ from fpdf import FPDF
 import streamlit_authenticator as stauth
 from backend import cargar_datos, entrenar_modelo
 
-# ----------------- Autenticación segura ----------------------
+# --------- AUTENTICACIÓN SEGURA (Funcional y actualizada 2024/2025) ----------
+import streamlit as st
+import streamlit_authenticator as stauth
+
+# Credenciales (usa el hash previamente generado en stauth_hasher.py)
 names = ['Usuario Demo']
 usernames = ['usuario']
-hashed_passwords = ['$2b$12$oSZaXBNG9vC.t2oPufZceulubBNW47OK/NuRho1LMDVhZFG7ojkqq']  # Usa tu propio hash generado previamente
+hashed_passwords = ['$2b$12$EjemploDeHashAqui']  # usa tu hash generado real aquí
 
+credentials = {
+    "usernames": {
+        usernames[0]: {
+            "name": names[0],
+            "password": hashed_passwords[0]
+        }
+    }
+
+# Inicialización correcta (Nueva versión streamlit_authenticator 0.2+)
 authenticator = stauth.Authenticate(
-    names, usernames, hashed_passwords,
-    "cookie_abp", "clave_segura_abp", cookie_expiry_days=30
+    credentials={"usernames": {usernames[0]: {"name": names[0], "password": hashed_passwords[0]}}},
+    cookie_name="cookie_abp",
+    key="signature_key_abp",
+    cookie_expiry_days=30
 )
 
-name, authentication_status, username = authenticator.login('🔒 Login', 'main')
+name, authentication_status, username = authenticator.login("🔒 Login", "main")
 
 if authentication_status is False:
     st.error('❌ Usuario o contraseña incorrectos.')
     st.stop()
 elif authentication_status is None:
-    st.warning('⚠️ Introduce usuario y contraseña.')
+    st.warning('⚠️ Introduce usuario y contraseña válidos.')
     st.stop()
+else:
+    authenticator.logout('Cerrar sesión', 'sidebar')
+    st.sidebar.write(f'👋 Bienvenido/a, {name}')
 
-authenticator.logout("Cerrar sesión", "sidebar")
-st.sidebar.write(f'👋 Bienvenido/a, {name}')
 
 # ----------------- Menú Navegación ------------------------
 menu = st.sidebar.radio("Menú", ["🏠 Home", "📊 Estadísticas"])
