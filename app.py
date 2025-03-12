@@ -84,29 +84,7 @@ elif menu == "📊 Estadísticas":
     fig_scatter = px.scatter(df_filtrado, x="xG", y="Gls", color="Player", title="Relación xG vs Goles")
     st.plotly_chart(fig_scatter)
 
-    # -------- Gráfico Radar Mejorado --------
-    radar_metrics = ['Gls', 'Ast', 'xG', 'xAG', 'PrgP', 'G+A']
-    valores_radar = datos_jugador[radar_metrics].iloc[0].tolist()
 
-    fig_radar = go.Figure(go.Scatterpolar(
-        r=valores_radar,
-        theta=radar_metrics,
-        fill='toself',
-        name=jugador,
-        line=dict(color='royalblue')
-    ))
-
-    fig_radar.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True,
-                range=[0, max(valores_radar) + 1]
-            )
-        ),
-        title=f"📌 Radar detallado para {jugador}",
-        showlegend=True
-    )
-    st.plotly_chart(fig_radar)
 
     # -------- Matriz de Confusión --------
     fig_heatmap = go.Figure(go.Heatmap(
