@@ -42,7 +42,7 @@ else:
 menu = st.sidebar.radio("Menú", ["🏠 Home", "📊 Estadísticas"])
 
 # ----------------- Cargar datos usando backend ----------------
-df_players, df_teams = cargar_datos("Big5Leagues_Jugadores.csv")
+df_players, df_teams = cargar_datos("Big5Leagues_Jugadores.csv", "Big5Leagues_Equipos.csv")
 
 if menu == "🏠 Home":
     st.title("🏠 Home")
