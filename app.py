@@ -12,7 +12,7 @@ credentials = {
     "usernames": {
         "Aithor": {
             "name": "Aithor",
-            "password": $2b$12$abcdefgTuHashCompletoCorrecto
+            "password": "$2b$12$HashCompletoSinCorchetes"
         }
     }
 }
