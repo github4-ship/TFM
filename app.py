@@ -93,6 +93,30 @@ elif menu == "📊 Estadísticas":
     fig_heatmap.update_layout(title="📌 Matriz de Confusión")
     st.plotly_chart(fig_heatmap)
 
+    # ----------------- Aplicación de filtros ----------------------
+df_filtrado = df_players[(df_players["Min"] >= minutos) & (df_players["Pos"].isin(posiciones))]
+if jugador_busqueda:
+    df_filtrado = df_filtrado[df_filtrado["Player"].str.contains(jugador_busqueda, case=False)]
+
+# Validación clave para prevenir errores:
+if df_filtrado.shape[0] < 10:
+    st.warning("⚠️ Hay muy pocos jugadores después de aplicar filtros. Modifica los filtros para mostrar más jugadores.")
+    st.stop()
+
+jugador = st.selectbox("Selecciona jugador", df_filtrado["Player"].unique())
+datos_jugador = df_filtrado[df_filtrado["Player"] == jugador]
+
+st.write("📈 **Estadísticas del jugador seleccionado:**", datos_jugador)
+
+# Intentar entrenar modelo únicamente si hay datos suficientes
+try:
+    modelo, matriz_confusion = entrenar_modelo(df_filtrado)
+    st.write(f'🎯 Precisión del modelo: {modelo.best_score_:.2f}')
+except ValueError:
+    st.error("❌ No se puede entrenar el modelo porque hay muy pocos datos después de filtrar. Ajusta los filtros nuevamente.")
+    st.stop()
+
+
     # ----------------- Exportación PDF ----------------------
     if st.button("📄 Exportar Informe en PDF"):
         pdf = FPDF()
