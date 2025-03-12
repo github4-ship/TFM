@@ -10,12 +10,13 @@ from backend import cargar_datos, entrenar_modelo
 # --------- AUTENTICACIÓN SEGURA (Corregido definitivo) ----------
 credentials = {
     "usernames": {
-        "usuario": {
-            "name": "Usuario Demo",
-            "password": "$2b$12$TU_HASH_GENERADO_PREVIAMENTE"
+        "Aithor": {
+            "name": "Aithor",
+            "password": "$2b$12$abcdefghiEjemploDeHashGeneradoCorrectamente"
         }
     }
 }
+
 
 authenticator = stauth.Authenticate(
     credentials=credentials,
