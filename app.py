@@ -1,4 +1,4 @@
-# app.py
+# ------------------ Librerías ------------------
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -6,82 +6,103 @@ import plotly.graph_objects as go
 import joblib
 from fpdf import FPDF
 import streamlit_authenticator as stauth
-from backend import cargar_datos
+from backend import cargar_datos, entrenar_modelo
 
-# --------- AUTENTICACIÓN SEGURA ----------
-import streamlit as st
-import streamlit_authenticator as stauth
-
-# Credenciales (modifica estos valores según tu preferencia)
+# ----------------- Autenticación segura ----------------------
 names = ['Usuario Demo']
 usernames = ['usuario']
-passwords = ['password123']  # Cámbialo por tu contraseña real
+hashed_passwords = ['$2b$12$oSZaXBNG9vC.t2oPufZceulubBNW47OK/NuRho1LMDVhZFG7ojkqq']  # Usa tu propio hash generado previamente
 
-# Genera contraseñas cifradas (hazlo previamente y pega el resultado aquí directamente)
-hashed_passwords = stauth.Hasher(passwords).generate()
-
-authenticator = stauth.Authenticate(names, usernames, hashed_passwords,
-                                    'cookie_abp', 'signature_key_abp', cookie_expiry_days=30)
+authenticator = stauth.Authenticate(
+    names, usernames, hashed_passwords,
+    "cookie_abp", "clave_segura_abp", cookie_expiry_days=30
+)
 
 name, authentication_status, username = authenticator.login('🔒 Login', 'main')
 
-if authentication_status == False:
+if authentication_status is False:
     st.error('❌ Usuario o contraseña incorrectos.')
     st.stop()
-elif authentication_status == None:
-    st.warning('⚠️ Por favor, introduce usuario y contraseña.')
+elif authentication_status is None:
+    st.warning('⚠️ Introduce usuario y contraseña.')
     st.stop()
-else:
-    authenticator.logout('Cerrar sesión', 'sidebar')
-    st.sidebar.write(f'👋 Bienvenido/a, {name}')
 
+authenticator.logout("Cerrar sesión", "sidebar")
+st.sidebar.write(f'👋 Bienvenido/a, {name}')
 
-# Menú principal
+# ----------------- Menú Navegación ------------------------
 menu = st.sidebar.radio("Menú", ["🏠 Home", "📊 Estadísticas"])
 
-df_players, df_teams = cargar_datos("data/Big5Leagues_Jugadores.csv")
+# ----------------- Cargar datos usando backend ----------------
+df_players, df_teams = cargar_datos("Big5Leagues_Jugadores.csv")
 
 if menu == "🏠 Home":
     st.title("🏠 Home")
-    st.write("Bienvenido al Análisis ABP con Machine Learning.")
+    st.write("Bienvenido/a al análisis interactivo de balón parado usando Machine Learning.")
     
 elif menu == "📊 Estadísticas":
-    st.title("📊 Estadísticas Avanzadas ABP")
+    st.title("📊 Estadísticas avanzadas")
 
-    # Filtros
-    posiciones = st.sidebar.multiselect("Posiciones", df_players["Pos"].unique())
-    min_minutos = st.sidebar.slider('Minutos mínimos', 0, 3000, 500)
-    jugador_busqueda = st.sidebar.text_input('Buscar jugador')
+    # Filtros interactivos obligatorios
+    posiciones = st.sidebar.multiselect("⚽ Posiciones", df_players["Pos"].unique(), default=df_players["Pos"].unique())
+    minutos = st.sidebar.slider("⏱️ Minutos jugados (mínimos)", 0, 4000, 500)
+    jugador_busqueda = st.sidebar.text_input("🔍 Buscar jugador")
 
-    df_filtrado = df_players[(df_players["Min"] >= min_minutos) & (df_players["Pos"].isin(posiciones))]
+    # Aplicación de filtros
+    df_filtrado = df_players[(df_players["Min"] >= minutos) & (df_players["Pos"].isin(posiciones))]
     if jugador_busqueda:
         df_filtrado = df_filtrado[df_filtrado["Player"].str.contains(jugador_busqueda, case=False)]
 
-    jugador = st.selectbox("Jugador:", df_filtrado["Player"].unique())
+    jugador = st.selectbox("Selecciona jugador", df_filtrado["Player"].unique())
+    datos_jugador = df_filtrado[df_filtrado["Player"] == jugador]
 
-    st.write(df_filtrado[df_filtrado["Player"]==jugador])
+    st.write("📈 **Estadísticas del jugador:**", datos_jugador)
 
-    modelo = joblib.load('ml_model.pkl')
+    # ----------------- Modelo Machine Learning ----------------------
+    modelo, matriz_confusion = entrenar_modelo(df_filtrado)
 
-    # Visualizaciones
-    fig_scatter = px.scatter(df_filtrado, x="xG", y="Gls", color="Player")
+    st.write(f'🎯 Precisión del modelo: {modelo.best_score_:.2f}')
+
+    # ----------------- Visualizaciones específicas ----------------------
+    # Scatterplot interactivo
+    fig_scatter = px.scatter(df_filtrado, x="xG", y="Gls", color="Player", title="Relación xG vs Goles")
     st.plotly_chart(fig_scatter)
 
-    # Radar plot
+    # Gráfico Radar
     jugador_seleccionado = df_filtrado[df_filtrado["Player"] == jugador].iloc[0]
+    radar_metrics = ['xG', 'xAG', 'PrgP']
+    valores_radar = jugador_seleccionado[radar_metrics].tolist()
+
     fig_radar = go.Figure(go.Scatterpolar(
-        r=[jugador['xG'],jugador['xAG'],jugador['PrgP']],
-        theta=['xG','xAG','PrgP'],
-        fill='toself'
+        r=valores_radar,
+        theta=radar_metrics,
+        fill='toself',
+        name=jugador
     ))
     st.plotly_chart(fig_radar)
 
-    # Exportar PDF
-    if st.button("Exportar PDF"):
+    # ----------------- Matriz de confusión (Heatmap) ----------------------
+    fig_heatmap = go.Figure(go.Heatmap(
+        z=matriz_confusion,
+        x=['No Éxito ABP', 'Éxito ABP'],
+        y=['Real No Éxito ABP', 'Real Éxito ABP'],
+        colorscale='Blues',
+        text=matriz_confusion,
+        texttemplate="%{text}"
+    ))
+    fig_heatmap.update_layout(title="📌 Matriz de Confusión")
+    st.plotly_chart(fig_heatmap)
+
+    # ----------------- Exportación PDF ----------------------
+    if st.button("📄 Exportar Informe en PDF"):
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200,10,f"Informe de {jugador}",ln=True,align='C')
-        pdf.output(f"Informe_{jugador}.pdf")
-        st.success("✅ PDF generado correctamente.")
+        pdf.set_font("Arial", size=14)
+        pdf.cell(200, 10, txt=f"Reporte ABP - {jugador}", ln=True, align='C')
 
+        pdf.set_font("Arial", size=12)
+        for metrica, valor in zip(radar_metrics, valores_radar):
+            pdf.cell(200, 10, txt=f"{metrica}: {valor}", ln=True)
+
+        pdf.output(f"Reporte_{jugador}.pdf")
+        st.success("✅ Reporte PDF generado con éxito.")
